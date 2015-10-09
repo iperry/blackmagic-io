@@ -30,6 +30,9 @@
 #include <linux/pci.h>
 #include <linux/dma-mapping.h>
 #include <linux/version.h>
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 2, 0)
+#include <linux/vmalloc.h>
+#endif
 #include "bm_mm.h"
 #include "bm_util.h"
 

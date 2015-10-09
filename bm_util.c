@@ -24,7 +24,6 @@
 ** DEALINGS IN THE SOFTWARE.
 ** -LICENSE-END-
 */
-#include <asm/i387.h>
 #include <asm/io.h>
 #include <linux/delay.h>
 #include <linux/hash.h>
@@ -43,10 +42,17 @@
 #include <linux/version.h>
 #include <linux/vmalloc.h>
 #include <linux/wait.h>
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 2, 0)
+#include <asm/i387.h>
+#endif
+
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 20)
 #include <linux/freezer.h>
 #endif
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 4, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 2, 0)
+	#include <asm/fpu/internal.h>
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(3, 4, 0)
 	#include <asm/fpu-internal.h>
 #endif
 #include <asm-generic/bug.h>
@@ -812,7 +818,10 @@ void bm_iowrite32be(uint32_t val, volatile void* addr)
 
 void bm_fpu_begin(void)
 {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 7, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 2, 0)
+    preempt_disable();
+	__kernel_fpu_begin();
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(3, 7, 0)
 	kernel_fpu_begin();
 #else
 	struct thread_info *thread;
@@ -851,7 +860,10 @@ void bm_fpu_begin(void)
 
 void bm_fpu_end(void)
 {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 7, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 2, 0)
+    preempt_disable();
+	__kernel_fpu_end();
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(3, 7, 0)
 	kernel_fpu_end();
 #else
 	stts();
